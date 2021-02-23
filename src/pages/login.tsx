@@ -1,31 +1,30 @@
 import React from "react";
-import { Box, Button } from "@chakra-ui/react";
-import { Form, Formik } from "formik";
+import { Formik, Form } from "formik";
 import Wrapper from "../components/Wrapper";
 import { InputField } from "../components/InputField";
-import { useRegisterMutation } from "../generated/graphql";
+import { Box, Button } from "@chakra-ui/react";
+import { useLoginMutation } from "../generated/graphql";
 import { toErrorMap } from "../utils/toErrorMap";
 import { useRouter } from "next/dist/client/router";
 
-interface registerProps {}
+interface loginProps {}
 
-const register: React.FC<registerProps> = ({}) => {
+const login: React.FC<loginProps> = ({}) => {
     const router = useRouter();
-    const [, register] = useRegisterMutation();
+    const [, login] = useLoginMutation();
     return (
         <Formik
             initialValues={{ username: "", password: "" }}
             onSubmit={async (values, { setErrors }) => {
-                const response = await register(values);
-                if (response.data?.register.errors) {
-                    setErrors(toErrorMap(response.data.register.errors));
-                } else if (response.data?.register.user) {
-                    // worked
+                let response = await login(values);
+                if (response.data?.login.errors) {
+                    setErrors(toErrorMap(response.data.login.errors));
+                } else {
                     router.push("/");
                 }
             }}
         >
-            {({ values, handleChange, isSubmitting }) => (
+            {({ isSubmitting }) => (
                 <Wrapper variant="small">
                     <Form>
                         <InputField
@@ -48,7 +47,7 @@ const register: React.FC<registerProps> = ({}) => {
                             mt={4}
                             isLoading={isSubmitting}
                         >
-                            Register
+                            Login
                         </Button>
                     </Form>
                 </Wrapper>
@@ -57,4 +56,4 @@ const register: React.FC<registerProps> = ({}) => {
     );
 };
 
-export default register;
+export default login;
