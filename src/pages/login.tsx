@@ -16,7 +16,7 @@ const login: React.FC<loginProps> = ({}) => {
         <Formik
             initialValues={{ username: "", password: "" }}
             onSubmit={async (values, { setErrors }) => {
-                let response = await login(values);
+                let response = await login({ options: values });
                 if (response.data?.login.errors) {
                     setErrors(toErrorMap(response.data.login.errors));
                 } else {
