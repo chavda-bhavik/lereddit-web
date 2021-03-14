@@ -1,33 +1,72 @@
 import { withUrqlClient } from "next-urql";
-import React from "react"
+import React, { useState } from "react"
 import { Layout } from "../components/Layout";
 import { usePostsQuery } from "../generated/graphql";
 import { createUrqlClient } from "../utils/createUrqlClient";
 import NextLink from 'next/link'
-import { Link } from "@chakra-ui/react";
+import {
+    Box,
+    Button,
+    Flex,
+    Heading,
+    Link,
+    Stack,
+    Text,
+} from "@chakra-ui/react";
 
 const Index = () => {
-      const [{ data }] = usePostsQuery({
-        variables: {
-          limit: 10,
-          cursor: ""
-        }
+  const [variables, setVariables] = useState <{limit:number, cursor: string|null}>({ limit: 10, cursor: null });
+      const [{ data, fetching }] = usePostsQuery({
+        variables
       });
+  
+      if (!fetching && !data) {
+        return <div>Query failed for some reason</div>
+      }
       return (
-        <Layout>
-          <div>Hello World!</div>
-          <NextLink href="/create-post">
-            <Link>
-              Create New Post
-            </Link>
-          </NextLink>
-          <br/>
+          <Layout>
+              <Flex>
+                <Heading>LeReddit</Heading>
+                  <NextLink href="/create-post">
+                    <Link as={Button} backgroundColor="blackAlpha.600" color="burlywood" ml="auto">      
+                      Create New Post
+                    </Link>
+                  </NextLink>
+              </Flex>
           {
-            data
-              ? data.posts.map((post) => <p key={post.id}>{post.title}</p>)
-              : <div>Loading...</div>
+            (!data && fetching) ? (
+              <div>Loading...</div>
+            ): (
+              <Stack spacing={8}>
+              {data?.posts.posts.map(post => (
+                  <Box
+                      p={5}
+                      shadow="md"
+                      borderWidth="1px"
+                      key={post.id}
+                  >
+                      <Heading fontSize="xl">{post.title}</Heading>
+                      <Text mt={4}>{post.textSnippet}</Text>
+                  </Box>
+              ))}
+          </Stack>
+          )}
+          {
+            (data && data.posts.hasMore ) &&
+            (
+              <Flex>
+                <Button onClick={() => {
+                  setVariables({
+                    limit: variables.limit,
+                    cursor: data.posts.posts[data.posts.posts.length - 1].createdAt
+                  });
+                }} my={4} isLoading={fetching} margin="auto" colorScheme="messenger">
+                Load More
+              </Button>
+            </Flex>
+            )
           }
-        </Layout>
+          </Layout>
       );
 };
 
